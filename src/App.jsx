@@ -13,7 +13,7 @@ function App() {
   return (
     <div className="app-container">
       <div className="card">
-        <h1>{import.meta.env.VITE_APP_TITLE || 'Welcome nexback'}</h1>
+        <h1>{import.meta.env.VITE_APP_TITLE || 'Welcome nexback devops'}</h1>
         <p className="subtitle">Please enter your name below</p>
 
         <form onSubmit={handleSubmit} className="input-group">

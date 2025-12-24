@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: Auto Deploy to EC2
 
 on:
   push:
@@ -6,51 +6,40 @@ on:
       - main
 
 jobs:
-  build-and-push:
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Build and push Docker image
+      - name: Login to ECR
         run: |
-          docker build -t 20016/fontaction:latest .
-          docker push 20016/fontaction:latest
+          aws ecr get-login-password --region ap-south-1 | \
+          docker login --username AWS --password-stdin \
+          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com
 
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v0.1.9
+      - name: Build & Push Docker Image
+        run: |
+          docker build -t ${{ secrets.ECR_REPO }} .
+          docker tag ${{ secrets.ECR_REPO }}:latest \
+          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com/${{ secrets.ECR_REPO }}:latest
+          docker push \
+          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com/${{ secrets.ECR_REPO }}:latest
+
+      - name: SSH Deploy on EC2
+        uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
           script: |
-            echo "Logging in to Docker Hub..."
-            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-            IMAGE="20016/fontaction:latest"
-            CONTAINER="fontaction-app"
-
-            echo "Stopping old container if exists..."
-            docker stop $CONTAINER || true
-            docker rm $CONTAINER || true
-
-            echo "Removing old image if exists..."
-            docker rmi $IMAGE || true
-
-            echo "Pulling latest image..."
-            docker pull $IMAGE
-
-            echo "Running new container..."
-            docker run -d --name $CONTAINER -p 80:80 --restart unless-stopped $IMAGE
-
-            echo "Deployment completed!"
+            cd /home/ec2-user/fontend
+            ./deploy.sh

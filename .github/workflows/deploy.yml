@@ -20,6 +20,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1
 
+      - name: Ensure EC2 is Running
+        run: |
+          aws ec2 start-instances --instance-ids i-07bd17273f26d2163 --region ap-south-1
+          aws ec2 wait instance-running --instance-ids i-07bd17273f26d2163 --region ap-south-1
+          echo "Instance is running. Waiting 30s for SSH to initialize..."
+          sleep 30
+
       - name: Login to ECR
         run: |
           aws ecr get-login-password --region ap-south-1 | \

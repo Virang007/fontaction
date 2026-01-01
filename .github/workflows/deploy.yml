@@ -50,6 +50,10 @@ jobs:
           script: |
             aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com
             
+            # Stop host Nginx if it's running (it's likely the cause of the Fedora page)
+            sudo systemctl stop nginx || true
+            sudo systemctl disable nginx || true
+            
             # Stop and remove the existing container
             docker stop name-printer-app || true
             docker rm -f name-printer-app || true

@@ -30,3 +30,4 @@ ec2/start.sh
 ec2/status.sh
 ec2/stop.sh
 .gitignore
+.github/workflows/flow

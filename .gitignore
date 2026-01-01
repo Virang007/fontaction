@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+ec2/config.ps1
+ec2/config.sh
+ec2/manage.ps1
+ec2/manage.sh
+ec2/start.sh
+ec2/status.sh
+ec2/stop.sh
+.gitignore

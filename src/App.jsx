@@ -165,7 +165,7 @@ function App() {
         </main>
 
         <footer className="footer animate-in">
-          <p>© {new Date().getFullYear()} Virang Acharya. Built with React.</p>
+          <p>© {new Date().getFullYear()} Virang Acharya.</p>
           <div className="footer-social">
             <a href="https://github.com/Virang007" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="GitHub">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
